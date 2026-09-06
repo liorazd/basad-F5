@@ -1,7 +1,11 @@
 #!/usr/bin/env bash
 # Start backend and frontend together.
 #   ./run.sh         dev mode (vite + tornado)
-#   ./run.sh build   build frontend, then run backend
+#   ./run.sh build   build frontend/dist/, then run the backend
+#
+# NOTE: `build` compiles the frontend but Tornado does NOT serve dist/ -- the
+# backend registers API routes only, no static-file handler. Serve dist/ with a
+# real web server and proxy the API paths to :8889.
 set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"

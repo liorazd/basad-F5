@@ -35,6 +35,15 @@ and cert replacement can be automated via the HTTP Basic `POST /api/v1/replace-c
 └── setup.sh / setup.ps1    Install deps + wire up (delegates to scripts/install.py)
 ```
 
+## Requirements
+
+- **Python 3.10 or newer.** The code uses PEP 604 unions (`str | None`)
+  throughout; on 3.9 it fails at import with a `TypeError` pointing at a type
+  annotation rather than at the version.
+- Node 18+ for the frontend.
+- Network reach to the F5 management addresses on 443, from wherever the
+  backend runs.
+
 ## Quick start
 
 ```bash
@@ -48,6 +57,31 @@ python scripts/install.py
 
 The wizard re-runs safely — it offers to update existing values rather than
 overwriting them.
+
+### Start it with the launcher, not `python app.py`
+
+**`app.py` does not read `.env`.** It only calls `os.getenv`, so the file is
+loaded by `run.sh` / `run.ps1`, which export it into the environment before
+starting the backend. Running `python app.py` directly ignores every value in
+`.env` — you get "No F5 environments configured" with no hint as to why.
+
+To run the backend on its own, export the variables yourself first:
+
+```bash
+set -a; . ./.env; set +a
+python app.py
+```
+
+The backend port is **hardcoded to 8889** (`app.py`, bottom of file) and is not
+configurable by environment variable.
+
+### Serving the built frontend
+
+`./run.sh build` (or `.\run.ps1 -Build`) compiles the frontend into
+`frontend/dist/`, but **Tornado does not serve it** — the backend registers no
+static-file handler, only the API routes. Point a web server (nginx, IIS,
+Caddy) at `frontend/dist/` and proxy the API paths to `:8889`, or keep using
+the Vite dev server for local work.
 
 ## Configuration
 
@@ -70,5 +104,18 @@ See `docs/CONFIGURATION.md` for the long-form explanation and
 
 ## Tests
 
-There is no unit-test suite yet — see `docs/AUTHENTICATION_FLOW.md` "Testing"
-section for the curl smoke tests the team currently runs.
+`test_irule_snat.py` covers iRule parsing/building, SNAT resolution and pool
+naming, the SNAT mapping table, and iRule versioning.
+
+It does `import app` at module scope, so the environment config must resolve
+before it will start. The example config is enough — no F5 is contacted:
+
+```bash
+F5_ENVIRONMENTS_FILE=f5_environments.example.json python test_irule_snat.py
+```
+
+Without that variable it exits immediately with "No F5 environments
+configured". It prints `All checks passed.` on success.
+
+For end-to-end checks against a live F5, see the "Testing" section of
+`docs/AUTHENTICATION_FLOW.md` for the curl smoke tests.

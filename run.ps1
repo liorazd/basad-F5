@@ -2,7 +2,11 @@
 #
 # Usage:
 #   PS> .\run.ps1            # dev mode (vite dev server on :8080, tornado on :8889)
-#   PS> .\run.ps1 -Build     # production: build dist/ then run backend only
+#   PS> .\run.ps1 -Build     # build frontend/dist/, then run the backend
+#
+# NOTE: -Build compiles the frontend but Tornado does NOT serve dist/ -- the
+# backend registers API routes only, no static-file handler. Serve dist/ with a
+# real web server and proxy the API paths to :8889.
 
 param(
     [switch]$Build
