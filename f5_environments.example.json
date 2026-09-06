@@ -1,0 +1,42 @@
+[
+  {
+    "id": "edge",
+    "name": "Edge",
+    "url": "https://f5-edge.example.org",
+    "nodes": [
+      "https://f5-edge-a.example.org",
+      "https://f5-edge-b.example.org"
+    ],
+    "member_networks": [
+      "10.0.0.0/8"
+    ],
+    "vip_networks": [
+      "10.20.10.0/24",
+      "10.20.11.0/24"
+    ],
+    "snat_mappings": [
+      { "vip_cidr": "10.20.10.0/24", "snat_network": "10.20.20.0/24" },
+      { "vip_cidr": "10.20.11.0/24", "snat_network": "10.20.21.0/24" }
+    ]
+  },
+  {
+    "id": "internal",
+    "name": "Internal",
+    "url": "https://f5-internal.example.org",
+    "nodes": [
+      "https://f5-internal-a.example.org",
+      "https://f5-internal-b.example.org"
+    ],
+    "member_networks": [
+      "172.16.0.0/12"
+    ],
+    "vip_networks": [
+      "172.20.210.0/24",
+      "172.20.211.0/24"
+    ],
+    "snat_mappings": [
+      { "vip_cidr": "172.20.210.0/24", "snat_network": "172.20.7.0/24" },
+      { "vip_cidr": "172.20.211.0/24", "snat_network": "172.20.8.0/28" }
+    ]
+  }
+]

@@ -1,0 +1,187 @@
+openapi: 3.0.3
+info:
+  title: F5 VIP Cert Replace API
+  description: >
+    Add a new certificate to the client-SSL profile bound to a VIP.
+    The caller authenticates with their OWN F5 credentials via HTTP Basic; the
+    application authenticates to F5 as that user and performs the change as them
+    (F5 RBAC governs what they may do). VIP + client-SSL profile discovery is done
+    separately with a read-only service account.
+
+    The operation is ADDITIVE and rollback-friendly: it imports the PKCS12 as a
+    NEW cert/key object named "<fqdn>_<year>" (never overwriting or deleting the
+    existing cert) and then repoints the profile at it. The previous cert/key are
+    left intact so an admin can roll back by repointing the profile (via the
+    portal audit-revert). Because the account must CREATE a new cert object and
+    modify the client-SSL profile (not just replace an existing cert in place),
+    the API user needs the F5 "Manager" role, not "Certificate Manager".
+
+    This document is intended to be imported into F5 Advanced WAF / ASM
+    "API Protection" so the schema (methods, paths, required fields, types and
+    limits) is positively enforced. Anything not described here should be blocked.
+  version: 1.0.0
+  contact:
+    name: VIP Portal
+servers:
+  - url: https://vip-portal.example.org
+    description: Portal backend (replace host with your VIP FQDN)
+
+# Every operation requires HTTP Basic (the caller's F5 username/password).
+security:
+  - basicAuth: []
+
+paths:
+  /api/v1/replace-cert:
+    post:
+      operationId: replaceCert
+      summary: Replace the client-SSL certificate on a VIP
+      description: >
+        Resolve the VIP (DNS or IP) to its client-SSL profile, then upload and
+        bind the supplied PKCS#12 as a new certificate named "<fqdn>_<year>".
+      security:
+        - basicAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ReplaceCertRequest'
+            encoding:
+              pfx_file:
+                contentType: application/octet-stream
+      responses:
+        '200':
+          description: Certificate replaced successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReplaceCertResponse'
+        '400':
+          description: Missing or invalid input (bad PFX/password, unresolved DNS, etc.).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Missing/invalid HTTP Basic credentials, or F5 rejected them.
+          headers:
+            WWW-Authenticate:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: No VIP found for the IP, or no client-SSL profile to replace.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Unexpected server/F5 error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+      description: The caller's F5 username and password.
+
+  schemas:
+    ReplaceCertRequest:
+      type: object
+      required:
+        - vip
+        - pfx_file
+        - pfx_password
+        - expire_year
+      additionalProperties: false
+      properties:
+        vip:
+          type: string
+          description: DNS name or IPv4 address of the VIP.
+          minLength: 3
+          maxLength: 255
+          pattern: '^[A-Za-z0-9.-]+$'
+          example: app.example.org
+        pfx_file:
+          type: string
+          format: binary
+          description: PKCS#12 (.pfx/.p12) bundle containing the cert, key and chain.
+        pfx_password:
+          type: string
+          format: password
+          description: Password protecting the PFX.
+          minLength: 1
+          maxLength: 256
+        expire_year:
+          type: integer
+          description: Year used in the cert object name "<fqdn>_<year>".
+          minimum: 2000
+          maximum: 2100
+          example: 2027
+        target:
+          type: string
+          description: Optional environment id to disambiguate if the IP exists in more than one environment.
+          maxLength: 64
+          pattern: '^[a-z0-9_-]+$'
+          example: dmz
+        profile:
+          type: string
+          description: Optional client-SSL profile (bare name or /Common/name) to disambiguate when a VIP has several.
+          maxLength: 255
+          pattern: '^[A-Za-z0-9._/-]+$'
+          example: /Common/app.example.org-clientssl
+
+    ReplaceCertResponse:
+      type: object
+      required:
+        - success
+      properties:
+        success:
+          type: boolean
+          example: true
+        vip:
+          type: string
+          example: app.example.org
+        vip_ip:
+          type: string
+          example: 10.20.10.9
+        environment:
+          type: string
+          example: dmz
+        fqdn:
+          type: string
+          example: app.example.org
+        profile:
+          type: string
+          example: /Common/app.example.org-clientssl
+        cert:
+          type: string
+          example: /Common/app.example.org_2027
+        key:
+          type: string
+          example: /Common/app.example.org_2027
+        old_cert:
+          type: string
+          example: /Common/app.example.org_2026
+        old_key:
+          type: string
+          example: /Common/app.example.org_2026
+
+    ErrorResponse:
+      type: object
+      required:
+        - success
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: string
+          example: vip is required

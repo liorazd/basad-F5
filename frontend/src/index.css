@@ -1,0 +1,160 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+  Design tokens. All colors HSL so opacity utilities work (`bg-primary/10`).
+
+  Palette goal: F5-branded but restrained. Red is reserved for the brand
+  accent (logo, active nav rail, key chips) via --brand. Primary is a
+  near-black/near-white inverted button — calmer than red everywhere.
+  Status colors (success/warning/destructive) are independent.
+*/
+
+@layer base {
+  :root {
+    /* Surfaces */
+    --background: 210 20% 98%;
+    --foreground: 222 25% 12%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 25% 12%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 25% 12%;
+
+    /* Primary buttons: inverted near-black */
+    --primary: 222 47% 11%;
+    --primary-foreground: 210 20% 98%;
+
+    /* F5 brand red (accents only) */
+    --brand: 354 78% 46%;
+    --brand-foreground: 0 0% 100%;
+
+    /* Cool slate neutrals */
+    --secondary: 215 25% 94%;
+    --secondary-foreground: 222 25% 18%;
+    --muted: 215 25% 94%;
+    --muted-foreground: 215 16% 42%;
+    --accent: 215 25% 92%;
+    --accent-foreground: 222 25% 18%;
+
+    /* Semantic */
+    --destructive: 354 78% 46%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 152 62% 36%;
+    --success-foreground: 0 0% 100%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 222 25% 12%;
+
+    /* Form chrome */
+    --border: 215 20% 88%;
+    --input: 215 20% 88%;
+    --ring: 222 47% 11%;
+
+    --radius: 0.625rem;
+
+    /* Sidebar surfaces */
+    --sidebar-background: 222 30% 12%;
+    --sidebar-foreground: 215 20% 78%;
+    --sidebar-primary: 354 78% 50%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 222 30% 18%;
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-border: 222 30% 18%;
+    --sidebar-ring: 354 78% 50%;
+  }
+
+  .dark {
+    /* Deep blue-black surfaces */
+    --background: 222 32% 7%;
+    --foreground: 210 20% 96%;
+    --card: 222 28% 11%;
+    --card-foreground: 210 20% 96%;
+    --popover: 222 28% 11%;
+    --popover-foreground: 210 20% 96%;
+
+    /* Inverted in dark: light button on dark surface */
+    --primary: 210 20% 96%;
+    --primary-foreground: 222 47% 11%;
+
+    --brand: 354 82% 56%;
+    --brand-foreground: 0 0% 100%;
+
+    --secondary: 222 22% 18%;
+    --secondary-foreground: 210 20% 96%;
+    --muted: 222 22% 18%;
+    --muted-foreground: 215 18% 65%;
+    --accent: 222 22% 20%;
+    --accent-foreground: 210 20% 96%;
+
+    --destructive: 354 82% 56%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 152 60% 50%;
+    --success-foreground: 0 0% 6%;
+    --warning: 38 95% 60%;
+    --warning-foreground: 222 25% 12%;
+
+    --border: 222 22% 20%;
+    --input: 222 22% 20%;
+    --ring: 210 20% 96%;
+
+    --sidebar-background: 222 38% 6%;
+    --sidebar-foreground: 215 20% 78%;
+    --sidebar-primary: 354 82% 56%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 222 28% 14%;
+    --sidebar-accent-foreground: 210 20% 96%;
+    --sidebar-border: 222 28% 14%;
+    --sidebar-ring: 354 82% 56%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+  }
+
+  /* Slim, theme-aware scrollbars */
+  *::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  *::-webkit-scrollbar-thumb {
+    background: hsl(var(--border));
+    border-radius: 8px;
+  }
+  *::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground) / 0.5);
+  }
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+}
+
+@layer utilities {
+  /* Subtle elevated surface that respects the theme */
+  .surface-1 {
+    background: hsl(var(--card));
+    box-shadow: 0 1px 2px hsl(var(--foreground) / 0.04), 0 1px 3px hsl(var(--foreground) / 0.06);
+  }
+
+  /* F5-red soft glow used on focused brand elements */
+  .brand-glow {
+    box-shadow: 0 0 0 1px hsl(var(--brand) / 0.25), 0 8px 24px -12px hsl(var(--brand) / 0.45);
+  }
+
+  /* Sticky page header pattern: light blur over background */
+  .page-header {
+    @apply sticky top-0 z-10 -mx-6 -mt-6 mb-6 border-b border-border bg-background/85 px-6 py-4 backdrop-blur;
+  }
+}

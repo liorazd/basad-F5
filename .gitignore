@@ -1,0 +1,38 @@
+# Local runtime config and secrets
+.env
+.env.*
+!.env.example
+f5_environments.json
+f5_service_account.enc
+f5_service_account.enc.bak
+
+# Runtime state (auto-managed; see DATA_DIR in app.py)
+data/
+cache/
+__pycache__/
+*.py[cod]
+
+# Frontend build/dependency output
+node_modules/
+dist/
+dist-ssr/
+*.local
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# Editor and OS files
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.claude/
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
